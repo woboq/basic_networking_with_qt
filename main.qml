@@ -4,10 +4,12 @@ import QtQuick 2.4
 import QtQuick.Window 2.2
 
 Window {
+    width: 640
+    height: 480
     visible: true
 
     Rectangle {
-
+        id: leftRect
         ListView {
             id: nodeView
             model: nodeList
@@ -51,10 +53,10 @@ Window {
         color: "white"
         border.color: "grey"
         radius:10
-        x: 250
-        y: 0
-        width:854-250
-        height: 480-60
+        anchors.left: leftRect.right
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.bottom: inputRect.top
 
         Text {
             font.pointSize: 16
@@ -67,6 +69,7 @@ Window {
     }
 
     Rectangle {
+        id: inputRect
         TextInput {
             id: input
             font.pointSize: 16
@@ -98,9 +101,9 @@ Window {
         color: "white"
         border.color: "grey"
         radius:10
-        x: 250
-        width: 854-250
-        y: 480-60
+        anchors.left: leftRect.right
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
         height: 60
         focus: true
     }
