@@ -1,11 +1,11 @@
 // This code is released as public domain.
 // -- Markus Goetz
-import QtQuick 1.0
+import QtQuick 2.4
+import QtQuick.Window 2.2
 
-// Pixel values hardcoded for Nokia N950
-Rectangle {
-    width: 854
-    height: 480
+Window {
+    visible: true
+
     Rectangle {
 
         ListView {

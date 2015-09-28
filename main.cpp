@@ -1,12 +1,12 @@
 // This code is released as public domain.
 // -- Markus Goetz
-#include <QtGui/QApplication>
-#include "qmlapplicationviewer.h"
-#include <QtNetwork/QUdpSocket>
-#include <QtCore/QTimer>
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
-#include <QDeclarativeContext>
+#include <QGuiApplication>
+#include <QUdpSocket>
+#include <QTimer>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QAbstractTableModel>
 #include <QMap>
 #include <QXmlQuery>
@@ -22,17 +22,22 @@ public:
     };
 
     NodeList()  {
+    }
+
+    QHash<int, QByteArray> roleNames() const {
         QHash<int, QByteArray> roles;
         roles[AddrRole] = "addr";
         roles[ChatLogRole] = "log";
-        setRoleNames(roles);
+        return roles;
     }
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const {
+        Q_UNUSED(parent);
         return nodes.size();
     }
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const {
+        Q_UNUSED(parent);
         return 1;
     }
 
@@ -127,7 +132,7 @@ class HttpHandler : public QObject {
     Q_OBJECT
 public:
     HttpHandler(QTcpSocket *so)
-        : socket(so), contentLength(0), state(Connected)
+        : state(Connected), socket(so), contentLength(0)
     {
         socket->setParent(this);
         connect(socket, SIGNAL(readyRead()), SLOT(readyReadSlot()));
@@ -136,7 +141,7 @@ public slots:
     void readyReadSlot() {
         while (state != ReadingData && socket->canReadLine()) {
             QByteArray line = socket->readLine().simplified();
-            if (state == Connected && line == "POST /chat HTTP/1.0" || line == "POST /chat HTTP/1.1") {
+            if (state == Connected && (line == "POST /chat HTTP/1.0" || line == "POST /chat HTTP/1.1")) {
                 state = ReadingHeaders;
             } else if (state == Connected) {
                 delete this;
@@ -206,12 +211,13 @@ private:
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
 
-    QmlApplicationViewer viewer;
+    QQmlApplicationEngine engine;
+
 
     NodeList nodeList;
-    viewer.rootContext()->setContextProperty("nodeList", &nodeList);
+    engine.rootContext()->setContextProperty("nodeList", &nodeList);
 
     Discovery localChatDiscovery;
     QObject::connect(&localChatDiscovery, SIGNAL(nodeDiscovered(QHostAddress)),
@@ -222,9 +228,7 @@ int main(int argc, char *argv[])
                      &nodeList, SLOT(chatMessageReceivedSlot(QHostAddress, QByteArray)));
 
     // QML loading
-    viewer.setOrientation(QmlApplicationViewer::ScreenOrientationAuto);
-    viewer.setMainQmlFile(QLatin1String("qml/QLocalChat1/main.qml"));
-    viewer.showExpanded();
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     return app.exec();
 }
 
