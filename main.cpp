@@ -9,7 +9,8 @@
 #include <QQmlContext>
 #include <QAbstractTableModel>
 #include <QMap>
-#include <QXmlQuery>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -62,15 +63,10 @@ public slots:
         }
     }
 
-    void chatMessageReceivedSlot(QHostAddress addr, QByteArray xml) {
-        QXmlQuery query;
-        query.setFocus(QString::fromUtf8(xml.constData(), xml.size()));
-        query.setQuery("/chat/message/string()");
-
-        QString output;
-        query.evaluateTo(&output);
-
-        appendLog(addr.toString(), "Remote", output.simplified());
+    void chatMessageReceivedSlot(QHostAddress addr, QByteArray json) {
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(json);
+        QString msg = jsonDocument.object().value("chat").toObject().value("message").toString();
+        appendLog(addr.toString(), "Remote", msg.simplified());
     }
 
     void appendLog(QString addr, QString who, QString s) {

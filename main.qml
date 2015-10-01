@@ -94,7 +94,9 @@ Window {
 
                     var url = "http://" + addr + ":31337/chat";
                     request.open("POST", url);
-                    request.send("<chat><message>" + chatText + "</message></chat>");
+                    var json = JSON.stringify({ "chat": {"message":chatText} });
+                    console.log(json);
+                    request.send(json);
                 }
             }
         }
