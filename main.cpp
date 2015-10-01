@@ -91,11 +91,11 @@ class Discovery : public QObject {
 public:
     Discovery() {
         socket.bind(31337);
-        connect(&socket, SIGNAL(readyRead()), SLOT(datagramReceived()));
+        connect(&socket, &QUdpSocket::readyRead, this, &Discovery::datagramReceived);
         sendHelloDatagram();
 
         helloTimer.setInterval(30*1000);
-        connect(&helloTimer, SIGNAL(timeout()), SLOT(sendHelloDatagram()));
+        connect(&helloTimer, &QTimer::timeout, this, &Discovery::datagramReceived);
         helloTimer.start();
     }
 
@@ -103,7 +103,6 @@ public slots:
     void sendHelloDatagram() {
         QByteArray helloDatagram("QLocalChat Hello");
         socket.writeDatagram(helloDatagram, QHostAddress::Broadcast, 31337);
-
     }
 
     void datagramReceived() {
@@ -135,7 +134,7 @@ public:
         : state(Connected), socket(so), contentLength(0)
     {
         socket->setParent(this);
-        connect(socket, SIGNAL(readyRead()), SLOT(readyReadSlot()));
+        connect(socket, &QTcpSocket::readyRead, this, &HttpHandler::readyReadSlot);
     }
 public slots:
     void readyReadSlot() {
@@ -163,7 +162,7 @@ public slots:
             if (socket->bytesAvailable() >= contentLength) {
                 QByteArray data = socket->readAll();
                 emit chatMessageReceived(socket->peerAddress(), data);
-                QObject::connect(socket, SIGNAL(disconnected()), socket, SLOT(deleteLater()));
+                QObject::connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
                 socket->disconnectFromHost();
                 return;
             }
@@ -187,7 +186,7 @@ class HttpServer : public QObject {
     Q_OBJECT
 public:
     HttpServer() {
-        QObject::connect(&serverSocket, SIGNAL(newConnection()), SLOT(incomingConnection()));
+        QObject::connect(&serverSocket,&QTcpServer::newConnection, this, &HttpServer::incomingConnection);
         serverSocket.listen(QHostAddress::Any, 31337);
     }
 
@@ -196,7 +195,8 @@ public slots:
         QTcpSocket *incomingSocket = serverSocket.nextPendingConnection();
         HttpHandler *httpHandler = new HttpHandler(incomingSocket);
         httpHandler->setParent(this);
-        QObject::connect(httpHandler, SIGNAL(chatMessageReceived(QHostAddress,QByteArray)), this, SIGNAL(chatMessageReceived(QHostAddress,QByteArray)));
+        // Just forward the received message as signal
+        QObject::connect(httpHandler, &HttpHandler::chatMessageReceived, this, &HttpServer::chatMessageReceived);
     }
 
 signals:
@@ -215,17 +215,16 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-
     NodeList nodeList;
     engine.rootContext()->setContextProperty("nodeList", &nodeList);
 
     Discovery localChatDiscovery;
-    QObject::connect(&localChatDiscovery, SIGNAL(nodeDiscovered(QHostAddress)),
-                     &nodeList, SLOT(nodeDiscoveredSlot(QHostAddress)));
+    QObject::connect(&localChatDiscovery, &Discovery::nodeDiscovered,
+                     &nodeList, &NodeList::nodeDiscoveredSlot);
 
     HttpServer localChatHttpServer;
-    QObject::connect(&localChatHttpServer, SIGNAL(chatMessageReceived(QHostAddress, QByteArray)),
-                     &nodeList, SLOT(chatMessageReceivedSlot(QHostAddress, QByteArray)));
+    QObject::connect(&localChatHttpServer, &HttpServer::chatMessageReceived,
+                     &nodeList, &NodeList::chatMessageReceivedSlot);
 
     // QML loading
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
