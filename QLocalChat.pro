@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick xmlpatterns  network
+QT += qml quick network
 
 SOURCES += main.cpp
 
