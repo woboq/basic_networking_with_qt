@@ -4,9 +4,10 @@ import QtQuick 2.4
 import QtQuick.Window 2.2
 
 Window {
-    width: 640
-    height: 480
+    width: 800
+    height: 600
     visible: true
+
 
     Rectangle {
         id: leftRect
@@ -22,7 +23,7 @@ Window {
             focus: true
 
             delegate: Text {
-                font.pointSize: 20
+                font.pointSize: 30
                 text: addr
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -59,7 +60,7 @@ Window {
         anchors.bottom: inputRect.top
 
         Text {
-            font.pointSize: 16
+            font.pointSize: 25
             id: chatField
             anchors.fill: parent
             anchors.margins: 10
@@ -72,7 +73,7 @@ Window {
         id: inputRect
         TextInput {
             id: input
-            font.pointSize: 16
+            font.pointSize: 25
             anchors.fill: parent
             anchors.margins: 10
             Keys.onPressed: {
