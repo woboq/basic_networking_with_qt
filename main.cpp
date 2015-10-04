@@ -91,7 +91,7 @@ public:
         sendHelloDatagram();
 
         helloTimer.setInterval(30*1000);
-        connect(&helloTimer, &QTimer::timeout, this, &Discovery::datagramReceived);
+        connect(&helloTimer, &QTimer::timeout, this, &Discovery::sendHelloDatagram);
         helloTimer.start();
     }
 
