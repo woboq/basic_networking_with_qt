@@ -169,7 +169,8 @@ signals:
     void chatMessageReceived(QHostAddress, QByteArray);
 
 private:
-    enum ConnectionState {Connected, ReadingHeaders, ReadingData, Closed};
+    enum ConnectionState {Connected, ReadingHeaders,
+                          ReadingData, Closed};
     ConnectionState state;
     QTcpSocket *socket;
     int contentLength;
@@ -182,7 +183,8 @@ class HttpServer : public QObject {
     Q_OBJECT
 public:
     HttpServer() {
-        QObject::connect(&serverSocket,&QTcpServer::newConnection, this, &HttpServer::incomingConnection);
+        QObject::connect(&serverSocket,&QTcpServer::newConnection,
+                         this, &HttpServer::incomingConnection);
         serverSocket.listen(QHostAddress::Any, 31337);
     }
 
@@ -192,7 +194,8 @@ public slots:
         HttpHandler *httpHandler = new HttpHandler(incomingSocket);
         httpHandler->setParent(this);
         // Just forward the received message as signal
-        QObject::connect(httpHandler, &HttpHandler::chatMessageReceived, this, &HttpServer::chatMessageReceived);
+        QObject::connect(httpHandler, &HttpHandler::chatMessageReceived,
+                         this, &HttpServer::chatMessageReceived);
     }
 
 signals:

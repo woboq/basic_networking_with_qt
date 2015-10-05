@@ -1,0 +1,4 @@
+POST /chat HTTP/1.0
+Content-Length: 32
+
+{"chat":{"message":"Hi buddy"}}
